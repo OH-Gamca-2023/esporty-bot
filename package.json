@@ -1,0 +1,23 @@
+{
+  "name": "esporty-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "run": "npx ts-node src/index.ts"
+  },
+  "author": "jaksia",
+  "dependencies": {
+    "@types/rwlock": "^5.0.3",
+    "@typescript-eslint/eslint-plugin": "^5.50.0",
+    "discord": "^0.8.2",
+    "discord.js": "^14.7.1",
+    "dotenv": "^16.0.3",
+    "eslint": "^8.33.0",
+    "node-json-db": "^2.1.4",
+    "rwlock": "^5.0.0",
+    "simple-json-db": "^2.0.0",
+    "ts-transformer-keys": "^0.4.4",
+    "tslint": "^6.1.3"
+  }
+}
