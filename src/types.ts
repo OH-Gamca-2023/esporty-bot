@@ -23,10 +23,24 @@ export interface Game {
         player: string;
         playerColor: string;
     }
+
+    emoji: string | null;
 }
 
 export interface Clazz {
-    id: string;
     name: string;
-    color: string;
+    id: string;
+
+    channels: {
+        text: string;
+        voice1: string;
+        voice2: string;
+    };
+
+    category: string;
+
+    role: {
+        id: string;
+        color: string;
+    };
 }

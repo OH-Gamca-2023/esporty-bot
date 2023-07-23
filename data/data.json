@@ -20,7 +20,8 @@
                 "playerColor": "bedfc",
                 "admin": "1071443828323668089",
                 "adminColor": "bedfc"
-            }
+            },
+            "emoji": "<:csgo:1132596992418258954>"
         },
         {
             "name": "LOL",
@@ -42,7 +43,8 @@
                 "adminColor": "74f984",
                 "player": "1071444736457592905",
                 "playerColor": "74f984"
-            }
+            },
+            "emoji": "<:lol:1132598585901449267>"
         },
         {
             "name": "Rocket league",
@@ -64,7 +66,8 @@
                 "adminColor": "efcfcc",
                 "player": "1071445103538876528",
                 "playerColor": "efcfcc"
-            }
+            },
+            "emoji": "<:rocket_league:1132598584634785852>"
         },
         {
             "name": "Brawl Stars",
@@ -86,7 +89,8 @@
                 "adminColor": "c9a8d9",
                 "player": "1071445226306146355",
                 "playerColor": "c9a8d9"
-            }
+            },
+            "emoji": "<:brawl_stars:1132598582428577833>"
         },
         {
             "name": "Clash Royale",
@@ -108,7 +112,8 @@
                 "adminColor": "3807ea",
                 "player": "1071445278105809007",
                 "playerColor": "3807ea"
-            }
+            },
+            "emoji": "<:clash_royale:1132598581036068904>"
         },
         {
             "name": "Geoguessr",
@@ -130,7 +135,23 @@
                 "adminColor": "83e194",
                 "player": "1071445307721777182",
                 "playerColor": "83e194"
-            }
+            },
+            "emoji": "<:geoguessr:1132598577789669396>"
         }
-    ]
+    ],
+    "classes": [],
+    "reaction_roles": {
+        "1132604563627716649": {
+            "title": "Game selector",
+            "description": "React to this message to get the role for the game you want to compete in.",
+            "color": "000000",
+            "channelId": "1071188688924582009",
+            "csgo:1132596992418258954": "1071443827300245535",
+            "lol:1132598585901449267": "1071444736457592905",
+            "rocket_league:1132598584634785852": "1071445103538876528",
+            "brawl_stars:1132598582428577833": "1071445226306146355",
+            "clash_royale:1132598581036068904": "1071445278105809007",
+            "geoguessr:1132598577789669396": "1071445307721777182"
+        }
+    }
 }

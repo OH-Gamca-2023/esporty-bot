@@ -42,4 +42,5 @@ export function execute(parts: string[], config: JsonDB, db: JsonDB, client: Cli
 
 export function help() {
     console.log('Usage: purge <all|channels|roles>');
+    console.log('Purging is NOT RECOMMENDED. It might break things which will only be fixable by manually accessing the database.');
 }

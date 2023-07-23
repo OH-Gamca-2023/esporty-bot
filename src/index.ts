@@ -18,9 +18,13 @@ client.on('ready', async () => {
 
     guild = client.guilds.cache.get(await config.getData('/guild_id'))!;
     console.log(`Connected to guild ${guild.name}!`);
+    
+    await loadEvents();
     console.log('Type "help" for a list of commands.');
 
-    startConsole();
+    startConsole().then(() => {
+        process.stdout.write('\nRemote console started.\n> ');
+    });
 
     process.stdin.resume();
     process.stdin.setEncoding('utf8');
@@ -32,13 +36,13 @@ client.login(process.env.TOKEN);
 
 let inputHistory: string[] = [];
 
-function handleInput(text: string) {
+async function handleInput(text: string) {
     process.stdin.pause();
     text = text.trim();
     if (text === 'quit' || text === 'exit') {
         done();
     } else {
-        handleCommand(text);
+        await handleCommand(text);
     }
     inputHistory.push(text);
     process.stdout.write('\n> ');
@@ -53,7 +57,7 @@ async function done() {
     process.exit();
 }
 
-function handleCommand(text: string) {
+async function handleCommand(text: string) {
     const parts = text.split(' ');
     const command = parts[0].toLowerCase();
 
@@ -78,7 +82,7 @@ function handleCommand(text: string) {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             const commandModule = require(`./commands/${command}.ts`);
             try {
-                commandModule.execute(parts, config, db, client, guild);
+                await commandModule.execute(parts, config, db, client, guild);
             } catch (e) {
                 console.error("Error while executing command", command);
                 console.error(e);
@@ -86,6 +90,43 @@ function handleCommand(text: string) {
         } else {
             console.log('Unknown command.');
         }
+    }
+}
+
+export const loadedEvents: Map<string, any> = new Map();
+
+export async function loadEvents() {
+    const files = fs.readdirSync('./src/events');
+    for (const file of files) {
+        delete require.cache[require.resolve(`./events/${file}`)];
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const eventModule = require(`./events/${file}`);
+        try {
+            eventModule.load(config, db, client, guild);
+            loadedEvents.set(file, eventModule);
+            console.log(`Loaded event ${file}`);
+        } catch (e) {
+            console.error("Error while loading event", file);
+            console.error(e);
+        }
+    }
+
+}
+
+export async function unloadEvent(name: string) {
+    if (loadedEvents.has(name)) {
+        const eventModule = loadedEvents.get(name);
+        try {
+            eventModule.unload();
+            loadedEvents.delete(name);
+            console.log(`Unloaded event ${name}`);
+        } catch (e) {
+            loadedEvents.delete(name);
+            console.error("Error while unloading event", name);
+            console.error(e);
+        }
+    } else {
+        console.warn(`Event ${name} is not loaded`);
     }
 }
 
@@ -144,10 +185,11 @@ async function startConsole() {
             return;
         }
 
+        process.stdout.write(message.content + '\n');
         process.stdin.emit('data', message.content);
     });
 
-    consoleChannel.send('Console attached.')
+    await consoleChannel.send('Console attached.')
 }
 
 process.on('unhandledRejection', (error) => {

@@ -16,7 +16,10 @@ module.exports = {
 	},
 	rules: {
 		"prefer-const":"off",
-		"no-non-null-assertion":"off",
+		"@typescript-eslint/no-non-null-assertion":"off",
 		"no-fallthrough":"off",
+		'no-case-declarations': 'off',
+		"@typescript-eslint/no-explicit-any":"off",
+		"@typescript-eslint/no-unused-vars":"off",
 	}
 };
