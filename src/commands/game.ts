@@ -1,7 +1,7 @@
 import { Game } from './../types';
 import { CategoryChannel, ChannelType, Client, Guild, GuildChannel, PermissionFlagsBits } from "discord.js";
 import { JsonDB } from "../db/JsonDB";
-import { create } from '../events/reaction_roles';
+import { create, edit, exists, remove } from '../events/reaction_roles';
 
 export async function execute(parts: string[], config: JsonDB, db: JsonDB, client: Client, guild: Guild) {
     let game;
@@ -118,9 +118,21 @@ export async function execute(parts: string[], config: JsonDB, db: JsonDB, clien
                 roles: roles as Game['roles'],
                 emoji: parts.slice(-1)[0]
             } as Game);
+            await updateRRs(db, client, guild);
             break;
         case 'delete':
         case 'remove':
+            if (parts[2] === 'all') {
+                console.log('Deleting all games...');
+                let games = db.getData('/games');
+                let promises: Promise<any>[] = [];
+                for (const game of games) {
+                    promises.push(execute(['game', 'delete', game.id], config, db, client, guild));
+                }
+                await Promise.all(promises);
+                console.log('All games deleted.');
+                return;
+            }
             // require confirmation
             game = db.getData(`/games`).find((game: any) => game.id === parts[2] || game.name === parts[2]) as Game | undefined;
             if (!game) {
@@ -147,6 +159,8 @@ export async function execute(parts: string[], config: JsonDB, db: JsonDB, clien
             await Promise.all(promises);
 
             console.log('Game deleted.');
+
+            await updateRRs(db, client, guild);
             break;
         case 'list':
             db.getData('/games').forEach((game: any) => {
@@ -187,13 +201,30 @@ export async function execute(parts: string[], config: JsonDB, db: JsonDB, clien
             console.log('Creating reaction roles...');
             try {
                 const games = db.getData('/games');
-                await create("Game selector", parts[2], games.map((game: any) => {
+                await remove('game_rr').catch(() => {/* ignored */});
+                await create('game_rr', "Game selector", parts[2], games.map((game: any) => {
                     return {
                         name: game.name,
                         roleId: game.roles.player,
                         emoji: game.emoji
                     }
-                }), db, client, 'React to this message to get the role for the game you want to compete in.');
+                }), 'React to this message to get the role for the game you want to compete in.');
+            } catch (e) {
+                console.error(e);
+            }
+            break;
+        case 'admin_rr':
+            console.log('Creating admin reaction roles...');
+            try {
+                const games = db.getData('/games');
+                await remove('admin_game_rr').catch(() => {/* ignored */});
+                await create('admin_game_rr', "Admin game selector", parts[2], games.map((game: any) => {
+                    return {
+                        name: game.name,
+                        roleId: game.roles.admin,
+                        emoji: game.emoji
+                    }
+                }), 'React to this message to get the role for the game you want to administrate.');
             } catch (e) {
                 console.error(e);
             }
@@ -240,12 +271,39 @@ async function recreate(id: string, db: JsonDB, guild: Guild) {
     }
 }
 
+async function updateRRs(db: JsonDB, client: Client, guild: Guild) {
+    if(await exists('game_rr') || await exists('admin_game_rr')) {
+        console.log('Updating reaction roles...');
+        if(await exists('game_rr')) {
+            await edit('game_rr', undefined, undefined, undefined, db.getData('/games').map((game: any) => {
+                return {
+                    name: game.name,
+                    roleId: game.roles.player,
+                    emoji: game.emoji
+                }
+            }));
+            console.log('Updated game selector.');
+        }
+        if(await exists('admin_game_rr')) {
+            await edit('admin_game_rr', undefined, undefined, undefined, db.getData('/games').map((game: any) => {
+                return {
+                    name: game.name,
+                    roleId: game.roles.admin,
+                    emoji: game.emoji
+                }
+            }));
+            console.log('Updated admin game selector.');
+        }
+    } else console.log('No reaction roles to update.');
+}
+
 export function help() {
-    console.log('Usage: game <create|delete|list|recreate|details|rr>');
+    console.log('Usage: game <create|delete|list|recreate|details|rr|admin_rr>');
     console.log(' - Create a game: game create <name> <emoji>');
     console.log(' - Delete a game: game delete <name|id|all>');
     console.log(' - List all games: game list');
     console.log(' - Recreate a game: game recreate <name|id|all>');
     console.log(' - Get details about a game: game details <name|id>');
     console.log(' - Create reaction roles for a games: game rr <channelId>');
+    console.log(' - Create admin reaction roles for a games: game admin_rr <channelId>');
 }

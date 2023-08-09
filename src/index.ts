@@ -23,13 +23,12 @@ client.on('ready', async () => {
     console.log('Type "help" for a list of commands.');
 
     startConsole().then(() => {
-        process.stdout.write('\nRemote console started.\n> ');
+        process.stdout.write('\nRemote console started.\n');
     });
 
     process.stdin.resume();
     process.stdin.setEncoding('utf8');
     process.stdin.on('data', handleInput);
-    process.stdout.write('> ');
 });
 
 client.login(process.env.TOKEN);
@@ -45,7 +44,7 @@ async function handleInput(text: string) {
         await handleCommand(text);
     }
     inputHistory.push(text);
-    process.stdout.write('\n> ');
+    process.stdout.write('\n');
     process.stdin.resume();
 }
 
@@ -163,9 +162,11 @@ async function startConsole() {
     };
 
     setInterval(async () => {
-        if (buffer.length > 0) {
-            await consoleChannel.send(buffer);
-            buffer = '';
+        // try to send as many lines as possible, maxing out at 2000 characters
+        while (buffer.length > 0) {
+            const message = buffer.substring(0, 2000);
+            buffer = buffer.substring(2000);
+            await consoleChannel.send(message);
         }
     }, 3000);
 

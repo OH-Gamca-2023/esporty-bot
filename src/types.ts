@@ -44,3 +44,19 @@ export interface Clazz {
         color: string;
     };
 }
+
+export type ReactionRole = {
+    id: string;
+    title: string;
+    description: string;
+    color: string;
+    channelId: string;
+    messageId: string;
+    options: Option[];
+}
+
+export type Option = {
+    name: string;
+    roleId: string;
+    emoji: string;
+}
