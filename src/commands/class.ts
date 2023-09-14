@@ -1,5 +1,5 @@
 
-import { CategoryChannel, ChannelType, Client, Guild, PermissionFlagsBits } from "discord.js";
+import { CategoryChannel, ChannelType, Client, Guild, PermissionFlagsBits, TextChannel } from "discord.js";
 import { JsonDB } from "../db/JsonDB";
 import { Clazz } from "../types";
 
@@ -141,6 +141,65 @@ export async function execute(parts: string[], config: JsonDB, db: JsonDB, clien
             for (const clazz of db.getData('/classes')) {
                 console.log(` - ${clazz.name} (${clazz.id})`);
             }
+            break;
+        case 'listen':
+            await (async () => {
+                if(parts.length < 3) {
+                    console.log('Usage: class listen <channel>');
+                    return;
+                }
+                const rChannel = guild.channels.cache.get(parts[2]);
+                if(!rChannel) {
+                    console.log('Channel not found!');
+                    return;
+                }
+                if(rChannel.type !== ChannelType.GuildText) {
+                    console.log('Channel must be a text channel!');
+                    return;
+                }
+                const channel = rChannel as TextChannel;
+
+                console.log(`Setting up class selector in channel ${channel.name} (${channel.id})...`);
+
+                await channel.bulkDelete(100);
+                await channel.send({
+                    embeds: [
+                        {
+                            title: 'Class selector',
+                            description: 'Send a message containing the name of your class into this channel.' + 
+                                         'The bot will attempt to give you the role of your class.\n' +
+                                         '**If you try to join a class you are not in, you will be banned from the server!**',
+                            color: 0x000000,
+                            fields: [
+                                {
+                                    name: 'Available classes',
+                                    value: db.getData('/classes').map((clazz: Clazz) => clazz.name).join(', ')
+                                },
+                                {
+                                    name: 'Examples of valid messages',
+                                    value: 'SeptimaA, septimaa, Septima A, III. A, 3.a, ...'
+                                }
+                            ]
+                        }
+                    ]
+                });
+
+                // make users with class roles unable to view the channel
+                for(const clazz of db.getData('/classes')) {
+                    const role = await guild.roles.fetch(clazz.role.id);
+                    if(!role) {
+                        console.error(`Could not find role ${clazz.role.id}`);
+                        continue;
+                    }
+                    await channel.permissionOverwrites.create(role, {
+                        ViewChannel: false
+                    });
+                    console.log(`Set permission override for role ${role.name} (${role.id})`);
+                }
+
+                db.push('/class/listen', channel.id);
+                console.log(`Listening to channel ${channel.name} (${channel.id})`);
+            })();
             break;
         default:
             help();
